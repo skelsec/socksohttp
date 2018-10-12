@@ -1,0 +1,74 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>a4d96881-e169-46b8-a34d-1c9c71251c90</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>socksOhttp.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>socksOhttp</Name>
+    <RootNamespace>socksOhttp</RootNamespace>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <CommandLineArguments>-v server 0.0.0.0 8443</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="socksOhttp.py" />
+    <Compile Include="socksohttp\AES\AES.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\AES\blockfeeder.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\AES\util.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\AES\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\client.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\comms.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\modules\echo.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\modules\__init__.py" />
+    <Compile Include="socksohttp\server.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\modules\socks5.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="socksohttp\" />
+    <Folder Include="socksohttp\AES\" />
+    <Folder Include="socksohttp\modules\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <!--<Target Name="CoreCompile" />-->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>
