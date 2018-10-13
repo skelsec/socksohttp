@@ -10,6 +10,7 @@ from . import logger
 key = b'AAAAAAAAAAAAAAAA'
 iv = b'\x11'*16
 
+
 class Counter:
 	def __init__(self, start_no = 0):
 		self.current = start_no

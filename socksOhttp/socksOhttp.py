@@ -21,6 +21,10 @@ if __name__ == '__main__':
 	
 	agent_group = subparsers.add_parser('agent', help='Agent mode')
 	agent_group.add_argument('url', help='URL to connect to')
+	agent_group.add_argument('-p','--proxy', help='Proxy server url')
+	agent_group.add_argument('-pi','--proxy-ip', help='IP the proxy should listen on', default = '127.0.0.1')
+	agent_group.add_argument('-pp','--proxy-port', type=int, help='Port the proxy should listen on', default = '10001')
+
 
 	args = parser.parse_args()
 	print(args)
@@ -55,6 +59,6 @@ if __name__ == '__main__':
 
 	elif args.mode == 'agent':
 		logging.debug('Starting agent mode')
-		ca = CommsAgentServer(args.url)
+		ca = CommsAgentServer(args.url, args.proxy, args.proxy_ip, args.proxy_port)
 		asyncio.get_event_loop().run_until_complete(ca.run())
 		logging.debug('Agent exited!')

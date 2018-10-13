@@ -11,6 +11,7 @@ import asyncio
 import uuid
 
 from ..comms import *
+from ..tcp_proxy import *
 
 module_name = 'socks5'
 
@@ -732,7 +733,7 @@ class SOCKS5Session:
 	def __init__(self):
 		self.current_state   = SOCKS5ServerState.NEGOTIATION
 		self.allinterface = ipaddress.ip_address('0.0.0.0')
-		self.supported_auth_types = [SOCKS5Method.PLAIN, SOCKS5Method.NOAUTH]
+		self.supported_auth_types = [SOCKS5Method.NOAUTH, SOCKS5Method.PLAIN] #if SOCKS5Method.NOAUTH is supported PUT IT AS FIRST OPTION!!!!
 		self.mutual_auth_type = None
 		self.auth_handler    = None
 		self.client_transport= None
@@ -846,6 +847,16 @@ class FakeStreamWriter:
 		self.buffer = b''
 		self.is_closing = False
 
+	def get_extra_info(self, info):
+		if info == 'peername':
+			return ('remote_forwarer', 0)
+		elif info == 'socket':
+			return None
+		elif info == 'sockname':
+			return ('localhost', 0)
+		else:
+			return None
+
 	def write(self, data):
 		if data == b'':
 			self.is_closing = True
@@ -882,6 +893,7 @@ class Socks5Server:
 		print('Sending putput data!')
 		await self.out_queue.put(Socks5Packet(self.session_id, data))
 
+	"""
 	async def proxy_forwarder(self, reader, writer):
 		while not self.session.proxy_closed.is_set():
 			try:
@@ -912,6 +924,7 @@ class Socks5Server:
 		except Exception as e:
 			logger.exception('proxy finishing!')
 		return
+	"""
 
 	async def run(self):
 		asyncio.ensure_future(self.creader.run())
@@ -958,8 +971,12 @@ class Socks5Server:
 						logger.debug('Connected!')
 						self.session.current_state = SOCKS5ServerState.RELAYING
 						t = await asyncio.wait_for(self.send(SOCKS5Reply.construct(SOCKS5ReplyType.SUCCEEDED, self.session.allinterface, 0).to_bytes()), timeout = 1)
-						asyncio.ensure_future(self.proxy_forwarder(proxy_reader, self.cwriter))
-						asyncio.ensure_future(self.proxy_forwarder(self.creader, proxy_writer))
+						#asyncio.ensure_future(self.proxy_forwarder(proxy_reader, self.cwriter))
+						#asyncio.ensure_future(self.proxy_forwarder(self.creader, proxy_writer))
+
+						tcp_proxy = AioTCPProxy(proxy_reader, proxy_writer, self.creader, self.cwriter, '[Socks5 Proxy]', logger)
+						asyncio.ensure_future(tcp_proxy.run())
+
 
 						await asyncio.wait_for(self.session.proxy_closed.wait(), timeout = None)
 						return
@@ -1006,8 +1023,9 @@ class Socks5Module(CommsModule):
 
 class Socks5ModuleServer(CommsModule):
 	def __init__(self, job_id, in_queue, out_queue):
-		CommsModule.__init__(self, module_name, job_id, in_queue, out_queue)
+		CommsModule.__init__(self, module_name, job_id, in_queue, out_queue, listen_ip = '127.0.0.1')
 		self.sessions = {} #session_id -> writer
+		self.listen_ip = listen_ip
 
 	async def handle_client_out(self):
 		while True:
@@ -1078,9 +1096,15 @@ class Socks5ModuleServer(CommsModule):
 			return
 
 	async def run(self):
-		listen_ip = '127.0.0.1'
-		listen_port = 8888
 		asyncio.ensure_future(self.handle_client_out())
-		#t = await asyncio.wait_for(asyncio.start_server(self.handle_client, listen_ip, listen_port), timeout = None)
-		await asyncio.start_server(self.handle_client, listen_ip, listen_port)
-		print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+		try:
+			sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			sock.bind((self.listen_ip, 0))
+
+			server = await asyncio.start_server(self.handle_client, sock=sock)
+			logging.info('%s is now listening on %s:%d' % (self.module_name, sock.getsockname()))
+			async with server:
+				await server.serve_forever()
+		except Exception as e:
+			logger.exception('Socks5ServerModule main loop error!')
+		
