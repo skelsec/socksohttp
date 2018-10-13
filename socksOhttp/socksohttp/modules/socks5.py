@@ -1022,8 +1022,8 @@ class Socks5Module(CommsModule):
 
 
 class Socks5ModuleServer(CommsModule):
-	def __init__(self, job_id, in_queue, out_queue):
-		CommsModule.__init__(self, module_name, job_id, in_queue, out_queue, listen_ip = '127.0.0.1')
+	def __init__(self, job_id, in_queue, out_queue, listen_ip = '127.0.0.1'):
+		CommsModule.__init__(self, module_name, job_id, in_queue, out_queue)
 		self.sessions = {} #session_id -> writer
 		self.listen_ip = listen_ip
 
