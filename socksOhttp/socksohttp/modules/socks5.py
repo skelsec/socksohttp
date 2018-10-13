@@ -1102,7 +1102,7 @@ class Socks5ModuleServer(CommsModule):
 			sock.bind((self.listen_ip, 0))
 
 			server = await asyncio.start_server(self.handle_client, sock=sock)
-			logging.info('%s is now listening on %s:%d' % (self.module_name, sock.getsockname()))
+			logger.info('%s is now listening on %s:%d' % (self.module_name, sock.getsockname()))
 			async with server:
 				await server.serve_forever()
 		except Exception as e:
