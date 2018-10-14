@@ -1099,7 +1099,7 @@ class Socks5ModuleServer(CommsModule):
 		asyncio.ensure_future(self.handle_client_out())
 		try:
 			server = await asyncio.start_server(self.handle_client, self.listen_ip, 0)
-			addrs = '%s:%d' % server.sockts[0].getsockname()
+			addrs = '%s:%d' % server.sockets[0].getsockname()
 			logger.info('%s is now listening on %s' % (self.module_name, addrs))
 			async with server:
 				await server.serve_forever()
