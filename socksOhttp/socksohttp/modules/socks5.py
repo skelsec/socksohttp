@@ -1098,10 +1098,12 @@ class Socks5ModuleServer(CommsModule):
 	async def run(self):
 		asyncio.ensure_future(self.handle_client_out())
 		try:
-			server = await asyncio.start_server(self.handle_client, self.listen_ip, 0)
+			server = await asyncio.start_server(self.handle_client, self.listen_ip)
 			addrs = '%s:%d' % server.sockets[0].getsockname()
 			logger.info('%s is now listening on %s' % (self.module_name, addrs))
-			asyncio.ensure_future(server.serve_forever())
+			async with server:
+				await server.serve_forever()
+			#asyncio.ensure_future(server.serve_forever())
 			
 		except Exception as e:
 			logger.exception('Socks5ServerModule main loop error!')

@@ -12,7 +12,7 @@
     <Name>socksOhttp</Name>
     <RootNamespace>socksOhttp</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-v server 0.0.0.0 8443</CommandLineArguments>
+    <CommandLineArguments>-vv server 0.0.0.0 8443</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -51,6 +51,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="socksohttp\modules\socks5.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\tcp_proxy.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="socksohttp\__init__.py">
