@@ -8,6 +8,7 @@ from . import logger
 from .modules.echo import EchoModule
 from .modules.socks5 import Socks5Module
 from .tcp_proxy import *
+from .fakehttpserver import *
 
 import websockets
 
@@ -170,6 +171,106 @@ class FakeHTTPProxy:
 		#	await server.serve_forever()
 		asyncio.ensure_future(server.serve_forever())
 
+class CommsAgentServerListening:
+	def __init__(self, listen_ip = '127.0.0.1', listen_port = 8443):
+		self.listen_ip = listen_ip
+		self.listen_port = listen_port
+		self.uuid = None
+		self.name = '[CommsAgentServerListening]'
+		self.client_timeout = 30
+		self.client_ping_interval = 30
+
+	async def keepalive(self, ws, client):
+		logger.debug('keepalive starting')
+		await asyncio.sleep(5)
+		while True:
+			# No data in 20 seconds, check the connection.
+			try:
+				pong_waiter = await ws.ping()
+				await asyncio.wait_for(pong_waiter, timeout=self.client_timeout)
+				logger.debug('Server still alive!')
+				await asyncio.sleep(self.client_ping_interval)
+			except asyncio.TimeoutError:
+				logger.info('Server timed out, dropping client!')
+				await client.in_queue.put('kill')
+				return
+			except Exception as e:
+				logger.exception('Keepalive died!')
+				return
+
+	async def register(self, ws):
+		try:
+			msg = await ws.recv()
+			cc = ClientCmd.from_msg(msg)
+			logger.debug('CMD recieved! %s' % str(type(cc)))
+
+			client_uuid = cc.cmd.client_uuid
+			rply = RegisterRply()
+			rply.client_uuid = client_uuid
+			msg = ClientRply()
+			msg.uuid = cc.uuid
+			msg.rply = rply
+			data = msg.to_msg()
+			await ws.send(data)
+			client_in_queue = asyncio.Queue()
+			client_out_queue = asyncio.Queue()
+
+			logger.debug('%s Registration succseeded! Got UUID: %s' % (self.name, client_uuid))
+
+			return CommsAgentClient(client_uuid, client_in_queue, client_out_queue)
+			
+		except Exception as e:
+			logger.exception()
+			return
+	
+	async def handle_client_out(self, ws, client):
+		while True:
+			try:
+				rply = await client.out_queue.get()
+				msg = ClientRply()
+				msg.uuid = str(uuid.uuid4())
+				msg.rply = rply
+				data = msg.to_msg()
+				logger.debug('%s Sending data to server: %s' % (self.name, data))
+				await ws.send(data)
+			except Exception as e:
+				logger.exception(self.name)
+				return
+
+	async def handle_client_in(self, ws, client):
+		while True:
+			try:
+				msg = await ws.recv()
+				logger.debug('%s Got command from server: %s' % (self.name, msg))
+				cr = ClientCmd.from_msg(msg)
+				cmd_uuid = cr.uuid
+				await client.in_queue.put(cr.cmd)
+			except Exception as e:
+				logger.exception(self.name)
+				return
+
+	async def handle_client(self, ws, path):
+		logger.debug('JS proxy connected from %s:%d' % ws.remote_address)
+		try:
+			cc = await self.register(ws)
+			asyncio.ensure_future(self.keepalive(ws, cc))
+			asyncio.ensure_future(self.handle_client_in(ws, cc))
+			asyncio.ensure_future(self.handle_client_out(ws, cc))
+			await cc.run()
+		except Exception as e:
+				logger.exception(self.name)
+				return
+		
+	async def run(self):
+		logger.debug('Starting listening agent!')
+		try:
+			fh = FakeHTTPServer(logger = logger)
+			asyncio.ensure_future(fh.run())
+			ws_server = await websockets.serve(self.handle_client, self.listen_ip, self.listen_port)
+			return ws_server
+		except Exception as e:
+			logger.exception('Failed to start server!')
+			return
 
 class CommsAgentServer:
 	def __init__(self, url, proxy = None, proxy_listen_ip = None, proxy_listen_port = None):

@@ -25,6 +25,9 @@ if __name__ == '__main__':
 	agent_group.add_argument('-pi','--proxy-ip', help='IP the proxy should listen on', default = '127.0.0.1')
 	agent_group.add_argument('-pp','--proxy-port', type=int, help='Port the proxy should listen on', default = '10001')
 
+	special_group = subparsers.add_parser('special', help='Special Agent mode')
+	special_group.add_argument('-l','--listen-ip', help='Ip to listen for incoming connections')
+	special_group.add_argument('-p','--listen-port', help='Port to listen for incoming connections')
 
 	args = parser.parse_args()
 	print(args)
@@ -61,4 +64,14 @@ if __name__ == '__main__':
 		logging.debug('Starting agent mode')
 		ca = CommsAgentServer(args.url, args.proxy, args.proxy_ip, args.proxy_port)
 		asyncio.get_event_loop().run_until_complete(ca.run())
+		logging.debug('Agent exited!')
+
+	elif args.mode == 'special':
+		logging.debug('Starting special agent mode')
+		if args.listen_ip and args.listen_port:
+			ca = CommsAgentServerListening(args.listen_ip, args.listen_port)
+		else:
+			ca = CommsAgentServerListening()
+		asyncio.get_event_loop().run_until_complete(ca.run())
+		asyncio.get_event_loop().run_forever()
 		logging.debug('Agent exited!')
