@@ -164,8 +164,11 @@ class FakeHTTPProxy:
 
 	async def run(self):
 		server = await asyncio.start_server(self.handle_client, self.listen_ip, self.listen_port)
-		async with server:
-			await server.serve_forever()
+		
+		#python3.7 has this awesome stuff but in 3.6 this functionality is missing :(
+		#async with server:
+		#	await server.serve_forever()
+		asyncio.ensure_future(server.serve_forever())
 
 
 class CommsAgentServer:
