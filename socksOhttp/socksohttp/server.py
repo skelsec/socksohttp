@@ -216,7 +216,7 @@ class CommsServer:
 		"""
 		try:
 			if self.with_proxyjs == True:
-				fh = FakeHTTPServer(listen_ip = '0.0.0.0',logger = logger)
+				fh = FakeHTTPServer(listen_ip = '0.0.0.0', listen_port = 8080,logger = logger)
 				asyncio.ensure_future(fh.run())
 			self.ws_server = websockets.serve(self.handle_client, self.ws_ip, self.ws_port)
 			return self.ws_server
