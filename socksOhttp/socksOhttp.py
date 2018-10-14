@@ -18,6 +18,7 @@ if __name__ == '__main__':
 	server_group = subparsers.add_parser('server', help='Server mode')
 	server_group.add_argument('listen_ip', help='IP to listen on')
 	server_group.add_argument('listen_port', type=int, help='port for the server')
+	server_group.add_argument('-j', action='store_true', help='spin up proxy JS server')
 	
 	agent_group = subparsers.add_parser('agent', help='Agent mode')
 	agent_group.add_argument('url', help='URL to connect to')
@@ -55,7 +56,7 @@ if __name__ == '__main__':
 
 	if args.mode == 'server':
 		logging.debug('Starting server mode')
-		cs = CommsServer(args.listen_ip, int(args.listen_port))
+		cs = CommsServer(args.listen_ip, int(args.listen_port), args.j)
 		start_server = cs.run()
 		asyncio.get_event_loop().run_until_complete(start_server)
 		asyncio.get_event_loop().run_forever()

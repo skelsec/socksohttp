@@ -7,6 +7,9 @@ from . import logger
 from .modules.echo import EchoModuleServer
 from .modules.socks5 import Socks5ModuleServer
 
+from .fakehttpserver import *
+
+
 import websockets
 
 
@@ -91,10 +94,12 @@ class CommsClient:
 
 
 class CommsServer:
-	def __init__(self, ws_ip, ws_port):
+	def __init__(self, ws_ip, ws_port, with_proxyjs = False):
 		self.ws_server = None
 		self.ws_ip = ws_ip
 		self.ws_port = ws_port
+
+		self.with_proxyjs = with_proxyjs
 
 		self.clients = {} #uuid -> CommsClient
 		self.sessions = {} #uuid -> ws
@@ -210,6 +215,9 @@ class CommsServer:
 			hello, 'localhost', 8765, ssl=ssl_context)
 		"""
 		try:
+			if self.with_proxyjs == True:
+				fh = FakeHTTPServer(logger = logger)
+				asyncio.ensure_future(fh.run())
 			self.ws_server = websockets.serve(self.handle_client, self.ws_ip, self.ws_port)
 			return self.ws_server
 		except Exception as e:
