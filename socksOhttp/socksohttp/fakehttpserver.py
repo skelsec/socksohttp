@@ -27,15 +27,15 @@ function connect(){
 	};
 
 	ws_server.onmessage = function(event) {
-		console.log(e);
-		console.log('Server to client: ' + e.data);
-		ws_agent.send(e.data);
+		//console.log(e);
+		//console.log('Server to client: ' + e.data);
+		ws_agent.send(event.data);
 	};
 
 	ws_agent.onmessage = function(event) {
-		console.log(e);
-		console.log('Client to server: ' + e.data);
-		ws_server.send(e.data);
+		//console.log(e);
+		//console.log('Client to server: ' + e.data);
+		ws_server.send(event.data);
 	};
 }
 </script>
