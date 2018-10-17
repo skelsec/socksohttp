@@ -43,6 +43,9 @@
     <Compile Include="socksohttp\comms.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="socksohttp\fakehttpserver.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="socksohttp\modules\echo.py">
       <SubType>Code</SubType>
     </Compile>
@@ -51,6 +54,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="socksohttp\modules\socks5.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="socksohttp\socksetio_proxy.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="socksohttp\tcp_proxy.py">

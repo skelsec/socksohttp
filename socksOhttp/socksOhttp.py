@@ -3,6 +3,7 @@ import logging
 from socksohttp.server import *
 from socksohttp.client import *
 from socksohttp import logger
+from socksohttp.socksetio_proxy import *
 
 
 if __name__ == '__main__':
@@ -19,6 +20,7 @@ if __name__ == '__main__':
 	server_group.add_argument('listen_ip', help='IP to listen on')
 	server_group.add_argument('listen_port', type=int, help='port for the server')
 	server_group.add_argument('-j', action='store_true', help='spin up proxy JS server')
+	server_group.add_argument('-s', action='store_true', help='spin up proxy Socket.IO server')
 	
 	agent_group = subparsers.add_parser('agent', help='Agent mode')
 	agent_group.add_argument('url', help='URL to connect to')
@@ -56,6 +58,9 @@ if __name__ == '__main__':
 
 	if args.mode == 'server':
 		logging.debug('Starting server mode')
+		if args.s == True:
+			s = SocketIOProxy(server_url = 'ws://127.0.0.1:8443',host = '0.0.0.0', port = '80', logger = logger)
+			asyncio.ensure_future(s.run())
 		cs = CommsServer(args.listen_ip, int(args.listen_port), args.j)
 		start_server = cs.run()
 		asyncio.get_event_loop().run_until_complete(start_server)
